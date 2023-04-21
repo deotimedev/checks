@@ -1,26 +1,34 @@
 #![feature(generic_const_exprs)]
+#![feature(trait_alias)]
 
-pub enum Check<const CONDITION: bool> {}
 
-pub trait Passed {}
-pub trait Failed {}
+pub trait Check<const EXPRESSION: bool> {}
 
-impl Passed for Check<true> {}
-impl Failed for Check<false> {}
+pub trait Passed = Check<true>;
+pub trait Failed = Check<false>;
 
-#[macro_export]
-macro_rules! define_check {
+pub enum Condition<const CONDITION: bool> {}
+impl<const CONDITION: bool> Check<CONDITION> for Condition<CONDITION> {}
 
-    ($name:ident) => {
-        // pub type $name = $crate::Check
-    }
+pub enum Equals<const A: i32, const B: i32> {}
+impl<const A: i32, const B: i32> Check<{ A == B }> for Equals<A, B> {}
 
-}
+struct Test<const T: i32>(i32)
+    where Equals<T, 2>: Passed;
 
-define_check!(Yester);
+// #[macro_export]
+// macro_rules! define_check {
+//     ($name:ident for $cc:ident, ($($param:ident)+) => $check:expr) => {
+//         $(
+//         pub trait $name = Check<$($param),*>;
+//         )*
+//
+//     }
+// }
 
-mod standard;
-use standard::*;
 
-fn test() {
+
+#[test]
+fn test_condition() {
+
 }
