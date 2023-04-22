@@ -22,7 +22,7 @@ macro_rules! check_module {
 
                 pub mod $m {
                     $(
-                        // TODO: Find out why doc tests don't work here even when they do normally
+                        // TODO: Find out why doc tests don't work here even when they do normally (it claims that no implementation can be found?)
 
                         $(#[doc = $doc])*
                         /// ```no_run
