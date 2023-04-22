@@ -1,21 +1,16 @@
 #![no_std]
 #![feature(generic_const_exprs)]
 
-pub enum Check<const EXPRESSION: bool> {}
+pub enum Check<const E: bool> {}
 
-// pub trait Conclusion {}
+pub trait Conclusion<const R: bool> {}
+
+// These can be represented by a trait alias to `Conclusion` when supported.
 pub trait Passed {}
 pub trait Failed {}
 
-impl Passed for Check<true> {}
-impl Failed for Check<false> {}
-
-pub enum Not<T /*should be a trait bound here but how?!*/> {
-    A(T) // uhh
-}
-
-impl <T: Passed> Failed for Not<T> {}
-impl <T: Failed> Passed for Not<T> {}
+impl<T: Conclusion<true>> Passed for T {}
+impl<T: Conclusion<false>> Failed for T {}
 
 macro_rules! check_module {
     ($($mod:ident)*; $($name:ident: |$($param:ident),+| $check:expr)*) => {
@@ -25,34 +20,31 @@ macro_rules! check_module {
                 pub mod $m {
                     $(
 
+                        // Theoretically, all custom checks could just be represented as a
+                        // type alias of `Check`, however currently it complains that it would
+                        // be an unconstrained bound.
                         pub enum $name<$(const $param: $m,)*> {}
 
                         impl<$(const $param: $m,)*> $name<$($param,)*> {
                             /// Rust const generic evaluation is strange
                             ///
                             /// ----------------------------------
-                            /// Check<{ A && B }> is Too complex
+                            /// Check<{ A && B }> -> Too complex
                             /// ----------------------------------
                             ///
                             /// ----------------------------------
-                            /// const fn not_complex<const A: bool, const B: bool>() -> bool {
+                            /// const fn apparently_not_complex<const A: bool, const B: bool>() -> bool {
                             ///     A && B
                             /// }
-                            /// Check<{ not_complex::<A, B> } is Simple
+                            ///
+                            /// Check<{ apparently_not_complex::<A, B> } -> Simple
                             /// ----------------------------------
                             ///
                             const fn simplify() -> bool { $check }
                         }
 
-                        macro_rules! impl_result {
-                            ($result:ident) => {
-                                impl<$(const $param: $m,)*> $crate::$result for $name<$($param,)*>
-                                    where $crate::Check<{ $name::<$($param,)*>::simplify() }>: $crate::$result {}
-                            }
-                        }
+                        impl<$(const $param: $m,)*> $crate::Conclusion<{ $name::<$($param,)*>::simplify() }> for $name<$($param,)*> {}
 
-                        impl_result!(Passed);
-                        impl_result!(Failed);
                     )*
                 }
             }
@@ -74,11 +66,10 @@ check_module!(i8 i16 i32 i64;
 check_module!(bool;
     Conjuct: |A, B| A && B
     Disjunct: |A, B| A || B
+    Negate: |T| !T
 );
 
 mod tests {
-    use core::marker::PhantomData;
-    use crate::Not;
     use super::{Check, Failed, Passed};
 
     struct Something<const T: i32>
