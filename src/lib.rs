@@ -1,54 +1,82 @@
+#![no_std]
 #![feature(generic_const_exprs)]
-
 
 pub enum Check<const EXPRESSION: bool> {}
 
 pub trait Passed {}
 pub trait Failed {}
 
-pub enum Equals<const A: i32, const B: i32> {}
-pub enum Not<const EXPRESSION: bool> {}
-impl<const A: i32, const B: i32> Passed for Equals<A, B>
-    where Check<{ A == B }>: Passed {
+impl Passed for Check<true> {}
+impl Failed for Check<false> {}
+
+macro_rules! check_module {
+    ($($mod:ident)*; $($name:ident: |$($param:ident),+| $check:expr)*) => {
+        macro_rules! apply_module {
+            ($m:ident) => {
+
+                pub mod $m {
+                    $(
+
+                        pub enum $name<$(const $param: $m,)*> {}
+
+                        impl<$(const $param: $m,)*> $name<$($param,)*> {
+                            /// Rust const generic evaluation is strange
+                            ///
+                            /// ----------------------------------
+                            /// Check<{ A && B }> is Too complex
+                            /// ----------------------------------
+                            ///
+                            /// ----------------------------------
+                            /// const fn not_complex<const A: bool, const B: bool>() -> bool {
+                            ///     A && B
+                            /// }
+                            /// Check<{ not_complex::<A, B> } is Simple
+                            /// ----------------------------------
+                            ///
+                            const fn simplify() -> bool { $check }
+                        }
+
+                        macro_rules! impl_result {
+                            ($result:ident) => {
+                                impl<$(const $param: $m,)*> $crate::$result for $name<$($param,)*>
+                                    where $crate::Check<{ $name::<$($param,)*>::simplify() }>: $crate::$result {}
+                            }
+                        }
+
+                        impl_result!(Passed);
+                        impl_result!(Failed);
+                    )*
+                }
+            }
+        }
+
+        $(
+            apply_module!($mod);
+        )*
+    };
 }
 
-impl<const A: i32, const B: i32> Failed for Equals<A, B>
-    where Check<{ A == B }>: Failed {
-}
+check_module!(i8 i16 i32 i64;
+    Equals: |A, B| A == B
+    Positive: |T| T > 0
+    Negative: |T| T < 0
+    Zero: |T| T == 0
+);
 
-struct Test<const T: i32>(i32)
-    where Equals<T, 2>: Passed;
+check_module!(bool;
+    Conjuct: |A, B| A && B
+    Disjunct: |A, B| A || B
+);
 
-// macro_rules! const_category {
-//     (numbers) => (i8 i16 i32 i64)
-// }
-//
-// #[macro_export]
-// macro_rules! define_check {
-//     ($name:ident for $($const_type:ty)|+, |$($param:ident),+| $check:expr) => {
-//         macro_rules! create_check_for_ctype {
-//             ($ctype:ty) => {
-//                 pub enum $name<const $($param)*: $ctype> {}
-//             }
-//         }
-//
-//         $(
-//             create_check_for_ctype!($const_type);
-//         )*
-//
-//
-//     };
-//
-//     // (@internal $name:ident, $($ctype:ty) +, $constants:tt, $params:tt, $check:expr) => {
-//     //
-//     // }
-// }
+mod tests {
+    use super::{Check, Failed, Passed};
 
-// define_check!(Equals for i32, (A, B) => A == B);
+    struct Something<const T: i32>
+    where
+        crate::i32::Positive<T>: Passed;
 
-
-
-#[test]
-fn test_condition() {
-    define_check!(Hello for i32 | bool, |A| true);
+    fn tester() {
+        let works = Something::<5>;
+        // let doesnt_work = Something::<-1>;
+    }
 }
