@@ -1,5 +1,11 @@
 #![no_std]
 #![feature(generic_const_exprs)]
+#![feature(const_format_args)]
+
+extern crate alloc;
+
+use alloc::format;
+use alloc::string::ToString;
 
 pub enum Check<const E: bool> {}
 
@@ -27,6 +33,8 @@ macro_rules! check_module {
                         $(#[doc = $doc])*
                         /// ```no_run
                         #[doc = concat!("use checks::{ Passed, ", stringify!($m), "::* };")]
+
+                        // TODO: fix ugly leading comma here
                         #[doc = concat!("struct ", stringify!($name), "Test<", $(concat!("const ", stringify!($param), ": ", stringify!($m), ", ")),*, ">")]
                         #[doc = concat!("\twhere ", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
                         ///
