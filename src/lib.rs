@@ -13,7 +13,7 @@ impl<T: Conclusion<true>> Passed for T {}
 impl<T: Conclusion<false>> Failed for T {}
 
 macro_rules! check_module {
-    ($($mod:ident)*; $($name:ident: |$($param:ident),+| $check:expr)*) => {
+    ($($mod:ident)* => $($name:ident: |$($param:ident),+$(,)?| $check:expr)*) => {
         macro_rules! apply_module {
             ($m:ident) => {
 
@@ -56,14 +56,28 @@ macro_rules! check_module {
     };
 }
 
-check_module!(i8 i16 i32 i64;
-    Equals: |A, B| A == B
+macro_rules! check_number_module {
+    ($($mod:ident)*$(=> $($name:ident: |$($param:ident),+| $check:expr)*)?) => {
+        check_module!($($mod)* =>
+            Equals: |A, B| A == B
+            Zero: |T| T == 0
+            Even: |T| T % 2 == 0
+            Odd: |T| T % 2 == 1
+            $($(
+            $name: |$($param,)*| $check
+            )*)*
+        );
+    }
+
+}
+
+check_number_module!(u8 u16 u32 u64 u128 usize);
+check_number_module!(i8 i16 i32 i64 i128 isize =>
     Positive: |T| T > 0
     Negative: |T| T < 0
-    Zero: |T| T == 0
 );
 
-check_module!(bool;
+check_module!(bool =>
     Conjuct: |A, B| A && B
     Disjunct: |A, B| A || B
     Negate: |T| !T
@@ -78,7 +92,11 @@ mod tests {
 
     #[test]
     fn tester() {
+        let test = 55_usize;
         let works = Something::<5>;
         // let doesnt_work = Something::<-1>;
     }
 }
+
+#[cfg(any(a))]
+fn needs_a() {}
