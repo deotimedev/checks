@@ -3,11 +3,19 @@
 
 pub enum Check<const EXPRESSION: bool> {}
 
+// pub trait Conclusion {}
 pub trait Passed {}
 pub trait Failed {}
 
 impl Passed for Check<true> {}
 impl Failed for Check<false> {}
+
+pub enum Not<T /*should be a trait bound here but how?!*/> {
+    A(T) // uhh
+}
+
+impl <T: Passed> Failed for Not<T> {}
+impl <T: Failed> Passed for Not<T> {}
 
 macro_rules! check_module {
     ($($mod:ident)*; $($name:ident: |$($param:ident),+| $check:expr)*) => {
@@ -69,12 +77,15 @@ check_module!(bool;
 );
 
 mod tests {
+    use core::marker::PhantomData;
+    use crate::Not;
     use super::{Check, Failed, Passed};
 
     struct Something<const T: i32>
     where
         crate::i32::Positive<T>: Passed;
 
+    #[test]
     fn tester() {
         let works = Something::<5>;
         // let doesnt_work = Something::<-1>;
