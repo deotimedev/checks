@@ -78,25 +78,45 @@ check_number_module!(i8 i16 i32 i64 i128 isize =>
 );
 
 check_module!(bool =>
-    Conjuct: |A, B| A && B
-    Disjunct: |A, B| A || B
+    And: |A, B| A && B
+    Or: |A, B| A || B
+    Xor: |A, B| A ^ B
     Negate: |T| !T
+);
+
+// Todo: Uppercase and Lowercase when const is supported.
+// Maybe emoji check as well 👀
+check_module!(char =>
+    Ascii: |C| C.is_ascii()
+    Digit: |C| C.is_ascii_digit()
+    Alphabetic: |C| C.is_ascii_alphabetic()
+    Alphanumeric: |C| C.is_ascii_alphanumeric()
+    Blank: |C| C.is_ascii_whitespace()
 );
 
 mod tests {
     use super::{Check, Failed, Passed};
 
-    struct Something<const T: i32>
+    struct PositiveOnly<const T: i32>
     where
         crate::i32::Positive<T>: Passed;
 
-    #[test]
-    fn tester() {
-        let test = 55_usize;
-        let works = Something::<5>;
-        // let doesnt_work = Something::<-1>;
+
+    struct AsciiOnly<const C: char>
+        where crate::char::Ascii<C>: Passed;
+
+    fn positive_test() {
+        let works = PositiveOnly::<5>;
+        // let doesnt_work = PositiveOnly::<-1>;
+    }
+
+    fn ascii_test() {
+        let works = AsciiOnly::<'a'>;
+        // let doesnt_work = AsciiOnly::<'🦀'>;
+    }
+
+    const fn ab() -> bool {
+        let a = 'a';
+        a.is_ascii_graphic()
     }
 }
-
-#[cfg(any(a))]
-fn needs_a() {}
