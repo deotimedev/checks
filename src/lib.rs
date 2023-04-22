@@ -63,6 +63,10 @@ macro_rules! check_number_module {
             Zero: |T| T == 0
             Even: |T| T % 2 == 0
             Odd: |T| T % 2 == 1
+            Less: |A, B| A < B
+            Greater: |A, B| A > B
+            LessOrEqual: |A, B| A <= B
+            GreaterOrEqual: |A, B| A >= B
             $($(
             $name: |$($param,)*| $check
             )*)*
@@ -85,7 +89,7 @@ check_module!(bool =>
 );
 
 // Todo: Uppercase and Lowercase when const is supported.
-// Maybe emoji check as well 👀
+// Todo: Maybe emoji check as well 👀?
 check_module!(char =>
     Ascii: |C| C.is_ascii()
     Digit: |C| C.is_ascii_digit()
@@ -95,6 +99,7 @@ check_module!(char =>
 );
 
 mod tests {
+    use core::any::Any;
     use super::{Check, Failed, Passed};
 
     struct PositiveOnly<const T: i32>
@@ -115,8 +120,4 @@ mod tests {
         // let doesnt_work = AsciiOnly::<'🦀'>;
     }
 
-    const fn ab() -> bool {
-        let a = 'a';
-        a.is_ascii_graphic()
-    }
 }
