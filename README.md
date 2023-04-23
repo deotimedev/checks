@@ -43,3 +43,5 @@ check! { u8 =>
     ): |N| (N == 0 || N == 1)
 }
 ```
+
+Full list of checks can be found on the [docs.rs page](https://docs.rs/checks/latest).
