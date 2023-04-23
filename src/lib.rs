@@ -1,6 +1,5 @@
 #![no_std]
 #![feature(generic_const_exprs)]
-#![feature(const_format_args)]
 
 pub enum Check<const E: bool> {}
 
@@ -22,13 +21,13 @@ macro_rules! check_module {
 
                 pub mod $m {
                     $(
-                        // TODO: Find out why doc tests don't work here even when they do normally (it claims that no implementation can be found?)
 
                         $(#[doc = $doc])*
                         /// ```no_run
+                        /// #![feature(generic_const_exprs)]
                         #[doc = concat!("use checks::{ Passed, ", stringify!($m), "::* };")]
-
-                        // TODO: fix ugly leading comma here
+                        ///
+                        // TODO: fix ugly trailing comma here
                         #[doc = concat!("struct ", stringify!($name), "Test<", $(concat!("const ", stringify!($param), ": ", stringify!($m), ", ")),*, ">")]
                         #[doc = concat!("\twhere ", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
                         ///
@@ -175,3 +174,4 @@ check_module!(char =>
         fails: 'a', '1'
     ): |C| C.is_ascii_whitespace()
 );
+
