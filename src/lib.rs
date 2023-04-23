@@ -27,8 +27,7 @@ macro_rules! check_module {
                         /// #![feature(generic_const_exprs)]
                         #[doc = concat!("use checks::{ Passed, ", stringify!($m), "::* };")]
                         ///
-                        // TODO: fix ugly trailing comma here
-                        #[doc = concat!("struct ", stringify!($name), "Test<", $(concat!("const ", stringify!($param), ": ", stringify!($m), ", ")),*, ">")]
+                        #[doc = concat!("struct ", stringify!($name), "Test<", stringify!($(const $param: $m),*), ">")]
                         #[doc = concat!("\twhere ", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
                         ///
                         $($(
