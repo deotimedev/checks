@@ -51,7 +51,7 @@ macro_rules! check {
         #[doc = concat!("use checks::{ Passed, ", stringify!($m), "::* };")]
         ///
         #[doc = concat!("struct ", stringify!($name), "Test<", $(concat!("const ", stringify!($param), ": ", stringify!($m), $(stringify!(, $($unused)?), " ")?)),*, ">")]
-        #[doc = concat!("\twhere ", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
+        #[doc = concat!("where\n\t", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
         ///
         $($(
             #[doc = concat!("let works = ", stringify!($name),"Test::<", stringify!($($pass),*), ">; // Success!")]
