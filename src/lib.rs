@@ -1,11 +1,22 @@
 #![no_std]
 #![feature(generic_const_exprs)]
 
+/// The base check, which matches [`Passed`] when `E` is `true`, and [`Failed`] when `E` is `false`.
 pub enum Check<const E: bool> {}
 
+impl<const E: bool> Conclusion<E> for Check<E> {}
+
+/// Used to match the result of a check.
 pub trait Conclusion<const R: bool> {}
 
+/// Indicates that a check has passed.
+///
+/// Any check that does **not** match [`Passed`] **will** match [`Failed`]
 pub trait Passed {}
+
+/// Indicates that a check has failed.
+///
+/// Any check that does **not** match [`Failed`] **will** match [`Passed`]
 pub trait Failed {}
 
 impl<T: Conclusion<true>> Passed for T {}
