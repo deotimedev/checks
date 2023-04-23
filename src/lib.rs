@@ -16,7 +16,7 @@ impl<T: Conclusion<false>> Failed for T {}
 // type alias of `Check`, however currently the compiler complains
 // that it would be an unconstrained bound
 macro_rules! check_module {
-    ($($mod:ident)* => $($(#[doc = $doc:expr])?$name:ident$((passes: $($($pass:tt);*),* fails: $($($fail:expr);*),*))?: |$($param:ident),+$(,)?| $check:expr)*) => {
+    ($($mod:ident)* => $($(#[doc = $doc:expr])?$name:ident$((passes: $($($pass:tt);*),* fails: $($($fail:expr);*),*))?: |$($param:ident),+| $check:expr)*) => {
         macro_rules! apply_module {
             ($m:ident) => {
 
