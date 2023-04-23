@@ -43,14 +43,14 @@ impl<T: Conclusion<false>> Failed for T {}
 /// ```
 #[macro_export]
 macro_rules! check {
-    ($m:ident => $($(#[doc = $doc:expr])?$name:ident$((passes: $($($pass:literal);*),* fails: $($($fail:literal);*),*))?: |$($param:ident),+| $check:expr)*) => {
+    ($m:ident => $($(#[doc = $doc:expr])?$name:ident$((passes: $($($pass:literal);*),* fails: $($($fail:literal);*),*))?: |$($param:ident$(, $(_$unused:tt)?)?)+| $check:expr)*) => {
         $(
         $(#[doc = $doc])*
         /// ```no_run
         /// #![feature(generic_const_exprs)]
         #[doc = concat!("use checks::{ Passed, ", stringify!($m), "::* };")]
         ///
-        #[doc = concat!("struct ", stringify!($name), "Test<", stringify!($(const $param: $m),*), ">")]
+        #[doc = concat!("struct ", stringify!($name), "Test<", $(concat!("const ", stringify!($param), ": ", stringify!($m), $(stringify!(, $($unused)?), " ")?)),*, ">")]
         #[doc = concat!("\twhere ", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
         ///
         $($(
