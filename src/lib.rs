@@ -2,13 +2,7 @@
 #![feature(generic_const_exprs)]
 #![feature(const_format_args)]
 
-extern crate alloc;
-
-use alloc::format;
-use alloc::string::ToString;
-
 pub enum Check<const E: bool> {}
-
 
 pub trait Conclusion<const R: bool> {}
 
@@ -120,7 +114,6 @@ check_module!(u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize =>
         fails: 0
     ): |T| T > 0
 );
-
 
 check_module!(bool =>
 
