@@ -2,6 +2,10 @@
 #![feature(generic_const_exprs)]
 
 /// The base check, which matches [`Passed`] when `E` is `true`, and [`Failed`] when `E` is `false`.
+///
+/// Theoretically, all custom checks could just be represented as a
+/// type alias of `Check`, however currently the compiler does
+/// not support that claiming it would be an unconstrained bound.
 pub enum Check<const E: bool> {}
 
 impl<const E: bool> Conclusion<E> for Check<E> {}
@@ -22,43 +26,62 @@ pub trait Failed {}
 impl<T: Conclusion<true>> Passed for T {}
 impl<T: Conclusion<false>> Failed for T {}
 
-// Theoretically, all custom checks could just be represented as a
-// type alias of `Check`, however currently the compiler complains
-// that it would be an unconstrained bound
+/// Defines a new check, and also generates docs/tests
+/// for provided input of the check.
+///
+/// Example:
+/// ```rust
+/// #![feature(generic_const_exprs)]
+///
+/// checks::check! { u8 =>
+///     /// Matches all binary numbers (0, 1)
+///     Binary(
+///         passes: 0, 1
+///         fails: 2, 3, 4
+///     ): |N| (N == 0 || N == 1)
+/// }
+/// ```
+#[macro_export]
+macro_rules! check {
+    ($m:ident => $($(#[doc = $doc:expr])?$name:ident$((passes: $($($pass:literal);*),* fails: $($($fail:literal);*),*))?: |$($param:ident),+| $check:expr)*) => {
+        $(
+        $(#[doc = $doc])*
+        /// ```no_run
+        /// #![feature(generic_const_exprs)]
+        #[doc = concat!("use checks::{ Passed, ", stringify!($m), "::* };")]
+        ///
+        #[doc = concat!("struct ", stringify!($name), "Test<", stringify!($(const $param: $m),*), ">")]
+        #[doc = concat!("\twhere ", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
+        ///
+        $($(
+            #[doc = concat!("let works = ", stringify!($name),"Test::<", stringify!($($pass),*), ">; // Success!")]
+        )*)*
+        /// ```
+
+        /// ```compile_fail
+        $($(
+            #[doc = concat!("let doesnt_work = ", stringify!($name),"Test::<", stringify!($($fail),*), ">; // Compile error!")]
+        )*)*
+        /// ```
+        pub enum $name<$(const $param: $m,)*> {}
+
+        impl<$(const $param: $m),*> $name<$($param),*> {
+            pub const fn simplify() -> bool { $check }
+        }
+
+        impl<$(const $param: $m),*> $crate::Conclusion<{ $name::<$($param),*>::simplify() }> for $name<$($param),*> {}
+        )*
+    }
+}
+
+
 macro_rules! check_module {
-    ($($mod:ident)* => $($(#[doc = $doc:expr])?$name:ident$((passes: $($($pass:literal);*),* fails: $($($fail:literal);*),*))?: |$($param:ident),+| $check:expr)*) => {
+    ($($mod:ident)* => $($body:tt)*) => {
         macro_rules! apply_module {
             ($m:ident) => {
 
                 pub mod $m {
-                    $(
-
-                        $(#[doc = $doc])*
-                        /// ```no_run
-                        /// #![feature(generic_const_exprs)]
-                        #[doc = concat!("use checks::{ Passed, ", stringify!($m), "::* };")]
-                        ///
-                        #[doc = concat!("struct ", stringify!($name), "Test<", stringify!($(const $param: $m),*), ">")]
-                        #[doc = concat!("\twhere ", stringify!($name), "<", stringify!($($param),*), ">: Passed;")]
-                        ///
-                        $($(
-                            #[doc = concat!("let works = ", stringify!($name),"Test::<", stringify!($($pass),*), ">; // Success!")]
-                        )*)*
-                        /// ```
-
-                        /// ```compile_fail
-                        $($(
-                            #[doc = concat!("let doesnt_work = ", stringify!($name),"Test::<", stringify!($($fail),*), ">; // Compile error!")]
-                        )*)*
-                        /// ```
-                        pub enum $name<$(const $param: $m,)*> {}
-
-                        impl<$(const $param: $m),*> $name<$($param),*> {
-                            pub const fn simplify() -> bool { $check }
-                        }
-
-                        impl<$(const $param: $m),*> $crate::Conclusion<{ $name::<$($param),*>::simplify() }> for $name<$($param),*> {}
-                    )*
+                    check!($m => $($body)*);
                 }
             }
         }

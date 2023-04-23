@@ -35,4 +35,11 @@ let fail = BinaryOnly::<2>; // Compiler error!
 
 Or alternatively written as:
 ```rust
+check! { u8 =>
+    /// Matches all binary numbers (0, 1)
+    Binary(
+        passes: 0, 1
+        fails: 2, 3, 4
+    ): |N| (N == 0 || N == 1)
+}
 ```
