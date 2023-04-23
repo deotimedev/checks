@@ -33,7 +33,7 @@ let pass = BinaryOnly::<1>; // Compiles
 let fail = BinaryOnly::<2>; // Compiler error!
 ```
 
-Or alternatively written as:
+Checks can also be defined with the `check!` macro:
 ```rust
 check! { u8 =>
     /// Matches all binary numbers (0, 1)
