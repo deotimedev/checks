@@ -27,7 +27,7 @@ impl<T: Conclusion<true>> Passed for T {}
 impl<T: Conclusion<false>> Failed for T {}
 
 /// Defines a new check, and also generates docs/tests
-/// for provided input of the check.
+/// for example input of the check.
 ///
 /// Example:
 /// ```rust
