@@ -1,6 +1,6 @@
 [package]
 name = "checks"
-version = "1.0.4"
+version = "1.0.5"
 edition = "2021"
 authors = ["deotime"]
 description = "Checks based on https://www.reddit.com/r/rust/comments/gt067a/implementing_a_trait_only_for_types_satisfying_a/"

@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![no_std]
 #![feature(generic_const_exprs)]
 
@@ -73,7 +74,6 @@ macro_rules! check {
         )*
     }
 }
-
 
 macro_rules! check_module {
     ($($mod:ident)* => $($body:tt)*) => {
