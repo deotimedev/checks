@@ -1,6 +1,6 @@
 [package]
 name = "checks"
-version = "1.0.5"
+version = "1.0.6"
 edition = "2021"
 authors = ["deotime"]
 description = "Adds several compile time checks for const generics"
